@@ -1,9 +1,6 @@
--- Kiểm tra và xóa GUI cũ nếu đã tồn tại để tránh trùng lặp
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
-local RunService = Hi and game:GetService("RunService") or game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:FindFirstChild("PlayerGui") or CoreGui
@@ -12,13 +9,11 @@ if playerGui:FindFirstChild("CookBurgerGUI") then
     playerGui.CookBurgerGUI:Destroy()
 end
 
--- Tạo ScreenGui chính
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CookBurgerGUI"
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 
--- Tạo Frame chính (Main Frame)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 320, 0, 260)
@@ -33,7 +28,6 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
--- Tiêu đề Bảy sắc cầu vồng (Rainbow Title)
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -70, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -44,7 +38,6 @@ titleLabel.Font = Enum.Font.FredokaOne
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = mainFrame
 
--- Hiệu ứng đổi màu cầu vồng cho tiêu đề
 task.spawn(function()
     while titleLabel and titleLabel.Parent do
         for i = 0, 1, 0.005 do
@@ -55,7 +48,27 @@ task.spawn(function()
     end
 end)
 
--- Nút Thu nhỏ / Phóng to (Minimize / Maximize)
+local container = Instance.new("ScrollingFrame")
+container.Name = "Container"
+container.Size = UDim2.new(1, -20, 1, -55)
+container.Position = UDim2.new(0, 10, 0, 45)
+container.BackgroundTransparency = 1
+container.BorderSizePixel = 0
+container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+container.CanvasSize = UDim2.new(0, 0, 0, 0)
+container.ScrollBarThickness = 4
+container.Parent = mainFrame
+
+local uiLayout = Instance.new("UIListLayout")
+uiLayout.Padding = UDim.new(0, 10)
+uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiLayout.Parent = container
+
+local uiPadding = Instance.new("UIPadding")
+uiPadding.PaddingTop = UDim.new(0, 5)
+uiPadding.PaddingBottom = UDim.new(0, 5)
+uiPadding.Parent = container
+
 local isMinimized = false
 local minButton = Instance.new("TextButton")
 minButton.Size = UDim2.new(0, 30, 0, 30)
@@ -71,7 +84,18 @@ local minCorner = Instance.new("UICorner")
 minCorner.CornerRadius = UDim.new(0, 4)
 minCorner.Parent = minButton
 
--- Nút Đóng / Xóa GUI
+minButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    container.Visible = not isMinimized
+    if isMinimized then
+        mainFrame.Size = UDim2.new(0, 320, 0, 45)
+        minButton.Text = "+"
+    else
+        mainFrame.Size = UDim2.new(0, 320, 0, 260)
+        minButton.Text = "-"
+    end
+end)
+
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 30, 0, 30)
 closeButton.Position = UDim2.new(1, -35, 0, 5)
@@ -90,33 +114,6 @@ closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- Container chứa các nút chức năng
-local container = Instance.new("ScrollingFrame")
-container.Size = UDim2.new(1, -20, 1, -55)
-container.Position = UDim2.new(0, 10, 0, 45)
-container.BackgroundTransparency = 1
-container.CanvasSize = UDim2.new(0, 0, 0, 180)
-container.ScrollBarThickness = 4
-container.Parent = mainFrame
-
-local uiLayout = Instance.new("UIListLayout")
-uiLayout.Padding = UDim.new(0, 10)
-uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
-uiLayout.Parent = container
-
-minButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    container.Visible = not isMinimized
-    if isMinimized then
-        mainFrame.Size = UDim2.new(0, 320, 0, 50)
-        minButton.Text = "+"
-    else
-        mainFrame.Size = UDim2.new(0, 320, 0, 260)
-        minButton.Text = "-"
-    end
-end)
-
--- Hàm tạo thông báo nhỏ tạm thời
 local function showNotification(text, duration)
     local notif = Instance.new("TextLabel")
     notif.Size = UDim2.new(1, 0, 0, 30)
@@ -137,23 +134,20 @@ local function showNotification(text, duration)
     end)
 end
 
--- Hàm kiểm tra trạng thái Rat
 local function checkIsRat()
-    local gameplayVal = player:FindFirstChild("Gameplay")
-    if gameplayVal and gameplayVal:IsA("ValueBase") then
-        return tostring(gameplayVal.Value):lower() == "rat"
-    elseif player:FindFirstChild("Gameplay") then
-        -- Trường hợp là thuộc tính hoặc object khác
-        return tostring(player.Gameplay) == "rat"
+    local char = player.Character
+    if not char then return false end
+    for _, child in ipairs(char:GetChildren()) do
+        if child.Name:lower() == "grabhitbox" then
+            return true
+        end
     end
     return false
 end
 
--- Hàm kiểm tra xem Part Money có nằm trong Volume (TheVault.Volume) hay không
 local function isInsideVaultVolume(moneyPart)
     local volume = workspace:FindFirstChild("Gameplay") and workspace.Gameplay:FindFirstChild("TheVault") and workspace.Gameplay.TheVault:FindFirstChild("Volume")
-    if not volume or not moneyPart then return true end -- Nếu không tìm thấy volume thì bỏ qua bước check này để tránh kẹt
-    
+    if not volume or not moneyPart then return true end
     local cf, size = volume.CFrame, volume.Size
     local relPos = cf:PointToObjectSpace(moneyPart.Position)
     return math.abs(relPos.X) <= size.X / 2 and math.abs(relPos.Y) <= size.Y / 2 and math.abs(relPos.Z) <= size.Z / 2
@@ -161,14 +155,12 @@ end
 
 local remoteEvent = ReplicatedStorage:FindFirstChild("Libs") and ReplicatedStorage.Libs:FindFirstChild("Events") and ReplicatedStorage.Libs.Events:FindFirstChild("RemoteEvent")
 
---------------------------------------------------------------------------------
--- NÚT 1: Auto farm money
---------------------------------------------------------------------------------
 local autoFarmRunning = false
 local autoFarmBtn = Instance.new("TextButton")
+autoFarmBtn.Name = "AutoFarmBtn"
 autoFarmBtn.Size = UDim2.new(1, 0, 0, 45)
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
-autoFarmBtn.Text = "Auto farm money: OFF"
+autoFarmBtn.Text = "Auto fram money"
 autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoFarmBtn.TextSize = 15
 autoFarmBtn.Font = Enum.Font.SourceSansBold
@@ -181,69 +173,81 @@ b1c.Parent = autoFarmBtn
 autoFarmBtn.MouseButton1Click:Connect(function()
     autoFarmRunning = not autoFarmRunning
     if autoFarmRunning then
-        autoFarmBtn.Text = "Auto farm money: ON"
+        autoFarmBtn.Text = "Auto fram money: ON"
         autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
         
         task.spawn(function()
-            local startCFrame = CFrame.new(-24.5000572, 91.1190414, -154.884506, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+            local targetTeleCFrame = CFrame.new(-24.5000572, 91.1190414, -154.884506, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+            local itemsFolder = workspace:FindFirstChild("Entities") and workspace.Entities:FindFirstChild("Items")
             
             while autoFarmRunning do
-                -- Kiểm tra rat trước khi làm gì
+                if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                    task.wait(1)
+                    continue
+                end
+                
+                local originalPosition = player.Character.HumanoidRootPart.CFrame
+
                 if not checkIsRat() then
                     showNotification("make sure you are a rat", 3)
                     autoFarmRunning = false
-                    autoFarmBtn.Text = "Auto farm money: OFF"
+                    autoFarmBtn.Text = "Auto fram money"
                     autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
                     break
                 end
                 
-                -- Teleport đến vị trí bắt đầu
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    player.Character.HumanoidRootPart.CFrame = startCFrame
+                player.Character.HumanoidRootPart.CFrame = targetTeleCFrame
+                
+                local existingMoney = {}
+                if itemsFolder then
+                    for _, child in ipairs(itemsFolder:GetChildren()) do
+                        if child.Name == "Money" then
+                            existingMoney[child] = true
+                        end
+                    end
                 end
                 
-                -- Đợi part Money xuất hiện trong workspace.Entities.Items và nằm trong Volume
-                local moneyPart = nil
-                local itemsFolder = workspace:FindFirstChild("Entities") and workspace.Entities:FindFirstChild("Items")
-                
+                local targetMoney = nil
                 if itemsFolder then
-                    -- Lắng nghe hoặc quét tìm part Money
                     while autoFarmRunning do
-                        moneyPart = itemsFolder:FindFirstChild("Money")
-                        if moneyPart and isInsideVaultVolume(moneyPart) then
+                        local newMoneyFound = nil
+                        for _, child in ipairs(itemsFolder:GetChildren()) do
+                            if child.Name == "Money" and not existingMoney[child] then
+                                if isInsideVaultVolume(child) then
+                                    newMoneyFound = child
+                                    break
+                                end
+                            end
+                        end
+                        
+                        if newMoneyFound then
+                            targetMoney = newMoneyFound
                             break
                         end
-                        task.wait(0.5)
+                        task.wait(0.3)
                     end
                 end
                 
                 if not autoFarmRunning then break end
                 
-                -- Teleport tới part Money và kích hoạt RemoteEvent liên tục (nhưng có độ trễ nhỏ)
-                if moneyPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    player.Character.HumanoidRootPart.CFrame = moneyPart.CFrame
-                    
-                    while autoFarmRunning and moneyPart and moneyPart.Parent do
-                        if remoteEvent then
-                            remoteEvent:FireServer("gameplay.grabItemAsAnimal", {
-                                targetPart = moneyPart
-                            })
-                        end
-                        
-                        -- Kiểm tra nếu Money đã nằm trong Character
-                        if player.Character:FindFirstChild("Money") or (moneyPart.Parent == player.Character) then
-                            break
-                        end
-                        task.wait(0.3)
-                    end
-                    
-                    -- Teleport quay lại chỗ nút bật Auto farm money và nhả tiền ra
-                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        player.Character.HumanoidRootPart.CFrame = startCFrame
-                    end
+                if targetMoney and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = targetMoney.CFrame
                     
                     if remoteEvent then
-                        remoteEvent:FireServer("gameplay.grabItemAsAnimal", {})
+                        remoteEvent:FireServer("gameplay.grabItemAsAnimal", {
+                            targetPart = targetMoney
+                        })
+                    end
+                    task.wait(0.3)
+                    
+                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        player.Character.HumanoidRootPart.CFrame = originalPosition
+                    end
+                    
+                    task.wait(1)
+                    
+                    if remoteEvent and autoFarmRunning then
+                        remoteEvent:FireServer("gameplay.grabItemAsAnimal")
                     end
                 end
                 
@@ -251,15 +255,13 @@ autoFarmBtn.MouseButton1Click:Connect(function()
             end
         end)
     else
-        autoFarmBtn.Text = "Auto farm money: OFF"
+        autoFarmBtn.Text = "Auto fram money"
         autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
     end
 end)
 
---------------------------------------------------------------------------------
--- NÚT 2: Farm money once (Chỉ làm một lần rồi kết thúc)
---------------------------------------------------------------------------------
 local farmOnceBtn = Instance.new("TextButton")
+farmOnceBtn.Name = "FarmOnceBtn"
 farmOnceBtn.Size = UDim2.new(1, 0, 0, 45)
 farmOnceBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 150)
 farmOnceBtn.Text = "Farm Money Once"
@@ -278,57 +280,66 @@ farmOnceBtn.MouseButton1Click:Connect(function()
         return
     end
     
-    local startCFrame = CFrame.new(-24.5000572, 91.1190414, -154.884506, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = startCFrame
-    end
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local originalPosition = player.Character.HumanoidRootPart.CFrame
+    local targetTeleCFrame = CFrame.new(-24.5000572, 91.1190414, -154.884506, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+    
+    player.Character.HumanoidRootPart.CFrame = targetTeleCFrame
     
     task.spawn(function()
         local itemsFolder = workspace:FindFirstChild("Entities") and workspace.Entities:FindFirstChild("Items")
-        local moneyPart = nil
+        local existingMoney = {}
+        if itemsFolder then
+            for _, child in ipairs(itemsFolder:GetChildren()) do
+                if child.Name == "Money" then
+                    existingMoney[child] = true
+                end
+            end
+        end
         
+        local targetMoney = nil
         if itemsFolder then
             local timeout = 0
-            while timeout < 10 do
-                moneyPart = itemsFolder:FindFirstChild("Money")
-                if moneyPart and isInsideVaultVolume(moneyPart) then
-                    break
+            while timeout < 15 do
+                for _, child in ipairs(itemsFolder:GetChildren()) do
+                    if child.Name == "Money" and not existingMoney[child] then
+                        if isInsideVaultVolume(child) then
+                            targetMoney = child
+                            break
+                        end
+                    end
                 end
+                if targetMoney then break end
                 timeout = timeout + 0.5
                 task.wait(0.5)
             end
         end
         
-        if moneyPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = moneyPart.CFrame
+        if targetMoney and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = targetMoney.CFrame
             
-            for i = 1, 5 do
-                if remoteEvent then
-                    remoteEvent:FireServer("gameplay.grabItemAsAnimal", {
-                        targetPart = moneyPart
-                    })
-                end
-                task.wait(0.3)
-                if player.Character:FindFirstChild("Money") or (moneyPart.Parent == player.Character) then
-                    break
-                end
-            end
-            
-            player.Character.HumanoidRootPart.CFrame = startCFrame
             if remoteEvent then
-                remoteEvent:FireServer("gameplay.grabItemAsAnimal", {})
+                remoteEvent:FireServer("gameplay.grabItemAsAnimal", {
+                    targetPart = targetMoney
+                })
+            end
+            task.wait(0.3)
+            
+            player.Character.HumanoidRootPart.CFrame = originalPosition
+            task.wait(1)
+            
+            if remoteEvent then
+                remoteEvent:FireServer("gameplay.grabItemAsAnimal")
             end
         end
     end)
 end)
 
---------------------------------------------------------------------------------
--- NÚT 3: Get strange point
---------------------------------------------------------------------------------
 local strangeBtn = Instance.new("TextButton")
+strangeBtn.Name = "StrangeBtn"
 strangeBtn.Size = UDim2.new(1, 0, 0, 45)
 strangeBtn.BackgroundColor3 = Color3.fromRGB(150, 70, 150)
-strangeBtn.Text = "Get Strange Point"
+strangeBtn.Text = "get strange point"
 strangeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 strangeBtn.TextSize = 15
 strangeBtn.Font = Enum.Font.SourceSansBold
@@ -343,65 +354,51 @@ strangeBtn.MouseButton1Click:Connect(function()
         local itemsFolder = workspace:FindFirstChild("Entities") and workspace.Entities:FindFirstChild("Items")
         if not itemsFolder then return end
         
-        -- Lấy vị trí ban đầu của character
         local char = player.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-        local originalPos = char.HumanoidRootPart.CFrame
         
-        -- Tìm point đầu tiên trong itemsFolder (lọc tìm object phù hợp hoặc Potion/Point)
-        local targetPoint = nil
+        local targetPotion = nil
         for _, child in ipairs(itemsFolder:GetChildren()) do
-            if child:IsA("BasePart") or child:IsA("Model") then
-                targetPoint = child
+            if child.Name:lower():find("potion") or string.match(child.Name, "^1_") then
+                targetPotion = child
                 break
             end
         end
         
-        if not targetPoint then return end
-        
-        local pointId = targetPoint.Name
-        -- Trích xuất hoặc giữ nguyên định dạng id kiểu "1_" nếu có
-        if not string.match(pointId, "^1_") then
-            pointId = "1_" .. pointId
+        if not targetPotion then
+            for _, child in ipairs(itemsFolder:GetChildren()) do
+                if child:IsA("BasePart") or child:IsA("Model") then
+                    targetPotion = child
+                    break
+                end
+            end
         end
         
-        -- Đưa point di chuyển mượt mà trước mặt character (giả lập anchored nhưng không anchored)
-        local connection
-        connection = RunService.RenderStepped:Connect(function()
-            if char and char:FindFirstChild("HumanoidRootPart") and targetPoint then
-                local targetCFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-                if targetPoint:IsA("Model") and targetPoint.PrimaryPart then
-                    targetPoint:SetPrimaryPartCFrame(targetCFrame)
-                elseif targetPoint:IsA("BasePart") then
-                    targetPoint.CFrame = targetCFrame
-                end
-            end
-        end)
+        if not targetPotion then
+            showNotification("No Potion found!", 2)
+            return
+        end
         
-        -- Kiểm tra sau 5 giây nếu chưa biến thành rat
-        task.delay(5, function()
-            if not checkIsRat() then
-                if connection then connection:Disconnect() end
-                -- Teleport mình đến vị trí point và trả lại vị trí point
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local currentPointPos = originalPos
-                    if targetPoint:IsA("BasePart") then
-                        currentPointPos = targetPoint.CFrame
-                    end
-                    char.HumanoidRootPart.CFrame = currentPointPos
-                end
+        local potionId = targetPotion.Name
+        if not string.match(potionId, "^1_") then
+            local numbersOnly = string.match(potionId, "%d+")
+            if numbersOnly then
+                potionId = "1_" .. numbersOnly
+            else
+                potionId = "1_" .. potionId
             end
-        end)
+        end
         
-        -- Kích hoạt event uống Potion
+        if targetPotion:IsA("BasePart") then
+            char.HumanoidRootPart.CFrame = targetPotion.CFrame
+        elseif targetPotion:IsA("Model") and targetPotion.PrimaryPart then
+            char.HumanoidRootPart.CFrame = targetPotion.PrimaryPart.CFrame
+        end
+        
         if remoteEvent then
             remoteEvent:FireServer("interaction", {
-                Object = pointId -- Ví dụ: GetNil("Potion", "1_578690") tương ứng
+                Object = potionId
             })
         end
-        
-        -- Ngắt kết nối sau một khoảng thời gian hoàn thành
-        task.wait(3)
-        if connection then connection:Disconnect() end
     end)
 end)
