@@ -1,6 +1,7 @@
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:FindFirstChild("PlayerGui") or CoreGui
@@ -16,8 +17,8 @@ screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 320, 0, 260)
-mainFrame.Position = UDim2.new(0.5, -160, 0.5, -130)
+mainFrame.Size = UDim2.new(0, 260, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -130, 0.5, -110)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -29,11 +30,11 @@ corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -70, 0, 40)
+titleLabel.Size = UDim2.new(1, -110, 0, 35)
 titleLabel.Position = UDim2.new(0, 10, 0, 0)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "Cook Burger"
-titleLabel.TextSize = 20
+titleLabel.TextSize = 18
 titleLabel.Font = Enum.Font.FredokaOne
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = mainFrame
@@ -50,17 +51,17 @@ end)
 
 local container = Instance.new("ScrollingFrame")
 container.Name = "Container"
-container.Size = UDim2.new(1, -20, 1, -55)
-container.Position = UDim2.new(0, 10, 0, 45)
+container.Size = UDim2.new(1, -20, 1, -45)
+container.Position = UDim2.new(0, 10, 0, 40)
 container.BackgroundTransparency = 1
 container.BorderSizePixel = 0
 container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 container.CanvasSize = UDim2.new(0, 0, 0, 0)
-container.ScrollBarThickness = 4
+container.ScrollBarThickness = 3
 container.Parent = mainFrame
 
 local uiLayout = Instance.new("UIListLayout")
-uiLayout.Padding = UDim.new(0, 10)
+uiLayout.Padding = UDim.new(0, 8)
 uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
 uiLayout.Parent = container
 
@@ -71,12 +72,12 @@ uiPadding.Parent = container
 
 local isMinimized = false
 local minButton = Instance.new("TextButton")
-minButton.Size = UDim2.new(0, 30, 0, 30)
-minButton.Position = UDim2.new(1, -70, 0, 5)
+minButton.Size = UDim2.new(0, 26, 0, 26)
+minButton.Position = UDim2.new(1, -110, 0, 5)
 minButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 minButton.Text = "-"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 18
+minButton.TextSize = 16
 minButton.Font = Enum.Font.SourceSansBold
 minButton.Parent = mainFrame
 
@@ -88,21 +89,35 @@ minButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     container.Visible = not isMinimized
     if isMinimized then
-        mainFrame.Size = UDim2.new(0, 320, 0, 45)
+        mainFrame.Size = UDim2.new(0, mainFrame.AbsoluteSize.X, 0, 40)
         minButton.Text = "+"
     else
-        mainFrame.Size = UDim2.new(0, 320, 0, 260)
+        mainFrame.Size = UDim2.new(0, mainFrame.AbsoluteSize.X, 0, 220)
         minButton.Text = "-"
     end
 end)
 
+local settingBtn = Instance.new("TextButton")
+settingBtn.Size = UDim2.new(0, 26, 0, 26)
+settingBtn.Position = UDim2.new(1, -75, 0, 5)
+settingBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+settingBtn.Text = "⚙"
+settingBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+settingBtn.TextSize = 14
+settingBtn.Font = Enum.Font.SourceSansBold
+settingBtn.Parent = mainFrame
+
+local settingCorner = Instance.new("UICorner")
+settingCorner.CornerRadius = UDim.new(0, 4)
+settingCorner.Parent = settingBtn
+
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Size = UDim2.new(0, 26, 0, 26)
+closeButton.Position = UDim2.new(1, -40, 0, 5)
 closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 16
+closeButton.TextSize = 14
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.Parent = mainFrame
 
@@ -114,14 +129,70 @@ closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
+local settingFrame = Instance.new("Frame")
+settingFrame.Name = "SettingFrame"
+settingFrame.Size = UDim2.new(0, 140, 0, 160)
+settingFrame.Position = UDim2.new(1, 5, 0, 0)
+settingFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+settingFrame.BorderSizePixel = 0
+settingFrame.Visible = false
+settingFrame.Parent = mainFrame
+
+local sfCorner = Instance.new("UICorner")
+sfCorner.CornerRadius = UDim.new(0, 6)
+sfCorner.Parent = settingFrame
+
+local sfLayout = Instance.new("UIListLayout")
+sfLayout.Padding = UDim.new(0, 5)
+sfLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sfLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+sfLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sfLayout.Parent = settingFrame
+
+settingBtn.MouseButton1Click:Connect(function()
+    settingFrame.Visible = not settingFrame.Visible
+end)
+
+local function createSettingOption(text, scale)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -10, 0, 25)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 13
+    btn.Font = Enum.Font.SourceSansBold
+    btn.Parent = settingFrame
+    
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 4)
+    c.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        if scale == "full" then
+            mainFrame.Size = UDim2.new(1, 0, 1, 0)
+            mainFrame.Position = UDim2.new(0, 0, 0, 0)
+        else
+            local baseW, baseH = 260, 220
+            mainFrame.Size = UDim2.new(0, baseW * scale, 0, baseH * scale)
+        end
+        settingFrame.Visible = false
+    end)
+end
+
+createSettingOption("100%", 1)
+createSettingOption("75%", 0.75)
+createSettingOption("50%", 0.5)
+createSettingOption("25%", 0.25)
+createSettingOption("Full screen", "full")
+
 local function showNotification(text, duration)
     local notif = Instance.new("TextLabel")
-    notif.Size = UDim2.new(1, 0, 0, 30)
-    notif.Position = UDim2.new(0, 0, 1, -35)
+    notif.Size = UDim2.new(1, 0, 0, 25)
+    notif.Position = UDim2.new(0, 0, 1, -30)
     notif.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     notif.TextColor3 = Color3.fromRGB(255, 255, 255)
     notif.Text = text
-    notif.TextSize = 14
+    notif.TextSize = 12
     notif.Font = Enum.Font.SourceSansBold
     notif.Parent = mainFrame
     
@@ -158,11 +229,11 @@ local remoteEvent = ReplicatedStorage:FindFirstChild("Libs") and ReplicatedStora
 local autoFarmRunning = false
 local autoFarmBtn = Instance.new("TextButton")
 autoFarmBtn.Name = "AutoFarmBtn"
-autoFarmBtn.Size = UDim2.new(1, 0, 0, 45)
+autoFarmBtn.Size = UDim2.new(1, 0, 0, 35)
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
 autoFarmBtn.Text = "Auto fram money"
 autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-autoFarmBtn.TextSize = 15
+autoFarmBtn.TextSize = 14
 autoFarmBtn.Font = Enum.Font.SourceSansBold
 autoFarmBtn.Parent = container
 
@@ -262,11 +333,11 @@ end)
 
 local farmOnceBtn = Instance.new("TextButton")
 farmOnceBtn.Name = "FarmOnceBtn"
-farmOnceBtn.Size = UDim2.new(1, 0, 0, 45)
+farmOnceBtn.Size = UDim2.new(1, 0, 0, 35)
 farmOnceBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 150)
 farmOnceBtn.Text = "Farm Money Once"
 farmOnceBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-farmOnceBtn.TextSize = 15
+farmOnceBtn.TextSize = 14
 farmOnceBtn.Font = Enum.Font.SourceSansBold
 farmOnceBtn.Parent = container
 
@@ -337,11 +408,11 @@ end)
 
 local strangeBtn = Instance.new("TextButton")
 strangeBtn.Name = "StrangeBtn"
-strangeBtn.Size = UDim2.new(1, 0, 0, 45)
+strangeBtn.Size = UDim2.new(1, 0, 0, 35)
 strangeBtn.BackgroundColor3 = Color3.fromRGB(150, 70, 150)
 strangeBtn.Text = "get strange point"
 strangeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-strangeBtn.TextSize = 15
+strangeBtn.TextSize = 14
 strangeBtn.Font = Enum.Font.SourceSansBold
 strangeBtn.Parent = container
 
@@ -401,4 +472,73 @@ strangeBtn.MouseButton1Click:Connect(function()
             })
         end
     end)
+end)
+
+local registerRunning = false
+local registerConnection = nil
+local registerOriginalCF = nil
+local registerBtn = Instance.new("TextButton")
+registerBtn.Name = "RegisterBtn"
+registerBtn.Size = UDim2.new(1, 0, 0, 35)
+registerBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 40)
+registerBtn.Text = "Register: OFF"
+registerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+registerBtn.TextSize = 14
+registerBtn.Font = Enum.Font.SourceSansBold
+registerBtn.Parent = container
+
+local b4c = Instance.new("UICorner")
+b4c.CornerRadius = UDim.new(0, 6)
+b4c.Parent = registerBtn
+
+registerBtn.MouseButton1Click:Connect(function()
+    registerRunning = not registerRunning
+    
+    local cashRegister = workspace:FindFirstChild("Camera") and workspace.Camera:FindFirstChild("PoIs") and workspace.Camera.PoIs:FindFirstChild("CashRegisterPart")
+    if not cashRegister then
+        showNotification("CashRegisterPart not found!", 2)
+        registerRunning = false
+        registerBtn.Text = "Register: OFF"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 40)
+        return
+    end
+    
+    if registerRunning then
+        if cashRegister:IsA("BasePart") then
+            registerOriginalCF = cashRegister.CFrame
+        elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+            registerOriginalCF = cashRegister.PrimaryPart.CFrame
+        end
+        
+        registerBtn.Text = "Register: ON"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(220, 150, 40)
+        
+        registerConnection = RunService.RenderStepped:Connect(function()
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and cashRegister and cashRegister.Parent then
+                local frontCF = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+                if cashRegister:IsA("BasePart") then
+                    cashRegister.CFrame = frontCF
+                elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+                    cashRegister:SetPrimaryPartCFrame(frontCF)
+                end
+            end
+        end)
+    else
+        registerBtn.Text = "Register: OFF"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 40)
+        
+        if registerConnection then
+            registerConnection:Disconnect()
+            registerConnection = nil
+        end
+        
+        if registerOriginalCF then
+            if cashRegister:IsA("BasePart") then
+                cashRegister.CFrame = registerOriginalCF
+            elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+                cashRegister:SetPrimaryPartCFrame(registerOriginalCF)
+            end
+        end
+    end
 end)
