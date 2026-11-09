@@ -19,7 +19,7 @@ screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 260, 0, 265) -- Tăng chiều cao để chứa thêm nút mới
+mainFrame.Size = UDim2.new(0, 260, 0, 265)
 mainFrame.Position = UDim2.new(0.5, -130, 0.5, -132)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
@@ -71,9 +71,6 @@ uiPadding.PaddingTop = UDim.new(0, 5)
 uiPadding.PaddingBottom = UDim.new(0, 5)
 uiPadding.Parent = container
 
--- ==========================================
--- HỆ THỐNG KÉO RÊ GUI MƯỢT MÀ (DRAG TWEEN)
--- ==========================================
 local dragging, dragInput, dragStart, startPos
 local function update(input)
     local delta = input.Position - dragStart
@@ -83,7 +80,7 @@ end
 
 mainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        if input.Position.Y - mainFrame.AbsolutePosition.Y <= 40 then -- Chỉ cho phép kéo ở thanh tiêu đề (top bar)
+        if input.Position.Y - mainFrame.AbsolutePosition.Y <= 40 then
             dragging = true
             dragStart = input.Position
             startPos = mainFrame.Position
@@ -264,15 +261,12 @@ end
 
 local remoteEvent = ReplicatedStorage:FindFirstChild("Libs") and ReplicatedStorage.Libs:FindFirstChild("Events") and ReplicatedStorage.Libs.Events:FindFirstChild("RemoteEvent")
 
--- ==========================================
--- CHỨC NĂNG CŨ: AUTO FARM MONEY
--- ==========================================
 local autoFarmRunning = false
 local autoFarmBtn = Instance.new("TextButton")
 autoFarmBtn.Name = "AutoFarmBtn"
 autoFarmBtn.Size = UDim2.new(1, 0, 0, 35)
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
-autoFarmBtn.Text = "Auto fram money"
+autoFarmBtn.Text = "Auto farm money"
 autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoFarmBtn.TextSize = 14
 autoFarmBtn.Font = Enum.Font.SourceSansBold
@@ -286,7 +280,7 @@ b1c.Parent = autoFarmBtn
 autoFarmBtn.MouseButton1Click:Connect(function()
     autoFarmRunning = not autoFarmRunning
     if autoFarmRunning then
-        autoFarmBtn.Text = "Auto fram money: ON"
+        autoFarmBtn.Text = "Auto farm money: ON"
         autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
         
         task.spawn(function()
@@ -304,7 +298,7 @@ autoFarmBtn.MouseButton1Click:Connect(function()
                 if not checkIsRat() then
                     showNotification("make sure you are a rat", 3)
                     autoFarmRunning = false
-                    autoFarmBtn.Text = "Auto fram money"
+                    autoFarmBtn.Text = "Auto farm money"
                     autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
                     break
                 end
@@ -368,14 +362,11 @@ autoFarmBtn.MouseButton1Click:Connect(function()
             end
         end)
     else
-        autoFarmBtn.Text = "Auto fram money"
+        autoFarmBtn.Text = "Auto farm money"
         autoFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
     end
 end)
 
--- ==========================================
--- CHỨC NĂNG CŨ: FARM ONCE
--- ==========================================
 local farmOnceBtn = Instance.new("TextButton")
 farmOnceBtn.Name = "FarmOnceBtn"
 farmOnceBtn.Size = UDim2.new(1, 0, 0, 35)
@@ -452,9 +443,6 @@ farmOnceBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ==========================================
--- CHỨC NĂNG CŨ: GET STRANGE POINT
--- ==========================================
 local strangeBtn = Instance.new("TextButton")
 strangeBtn.Name = "StrangeBtn"
 strangeBtn.Size = UDim2.new(1, 0, 0, 35)
@@ -524,9 +512,6 @@ strangeBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ==========================================
--- CHỨC NĂNG CŨ: REGISTER STEALER
--- ==========================================
 local registerRunning = false
 local registerConnection = nil
 local registerOriginalCF = nil
@@ -551,4 +536,110 @@ registerBtn.MouseButton1Click:Connect(function()
     local cashRegister = workspace:FindFirstChild("Camera") and workspace.Camera:FindFirstChild("PoIs") and workspace.Camera.PoIs:FindFirstChild("CashRegisterPart")
     if not cashRegister then
         showNotification("CashRegisterPart not found!", 2)
-        re
+        registerRunning = false
+        registerBtn.Text = "Register: OFF"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 40)
+        return
+    end
+    
+    if registerRunning then
+        if cashRegister:IsA("BasePart") then
+            registerOriginalCF = cashRegister.CFrame
+        elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+            registerOriginalCF = cashRegister.PrimaryPart.CFrame
+        end
+        
+        registerBtn.Text = "Register: ON"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(220, 150, 40)
+        
+        registerConnection = RunService.RenderStepped:Connect(function()
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and cashRegister and cashRegister.Parent then
+                local frontCF = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+                if cashRegister:IsA("BasePart") then
+                    cashRegister.CFrame = frontCF
+                elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+                    cashRegister:SetPrimaryPartCFrame(frontCF)
+                end
+            end
+        end)
+    else
+        registerBtn.Text = "Register: OFF"
+        registerBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 40)
+        
+        if registerConnection then
+            registerConnection:Disconnect()
+            registerConnection = nil
+        end
+        
+        if registerOriginalCF then
+            if cashRegister:IsA("BasePart") then
+                cashRegister.CFrame = registerOriginalCF
+            elseif cashRegister:IsA("Model") and cashRegister.PrimaryPart then
+                cashRegister:SetPrimaryPartCFrame(registerOriginalCF)
+            end
+        end
+    end
+end)
+
+local bringCargoBtn = Instance.new("TextButton")
+bringCargoBtn.Name = "BringCargoBtn"
+bringCargoBtn.Size = UDim2.new(1, 0, 0, 35)
+bringCargoBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+bringCargoBtn.Text = "Bring Cargo & Own Network"
+bringCargoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+bringCargoBtn.TextSize = 14
+bringCargoBtn.Font = Enum.Font.SourceSansBold
+bringCargoBtn.LayoutOrder = 5
+bringCargoBtn.Parent = container
+
+local b5c = Instance.new("UICorner")
+b5c.CornerRadius = UDim.new(0, 6)
+b5c.Parent = bringCargoBtn
+
+bringCargoBtn.MouseButton1Click:Connect(function()
+    local Character = player.Character
+    local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
+    local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+    
+    if not Humanoid or Humanoid.SeatPart == nil then
+        showNotification("make sure you are driving", 3)
+        return
+    end
+
+    local TargetModel = workspace:FindFirstChild("Entities")
+        and workspace.Entities:FindFirstChild("Vehicles")
+        and workspace.Entities.Vehicles:FindFirstChild("Cargo")
+
+    if RootPart and TargetModel then
+        local MainPart = TargetModel:IsA("Model") and (TargetModel.PrimaryPart or TargetModel:FindFirstChildWhichIsA("BasePart")) or TargetModel
+        
+        if MainPart and MainPart:IsA("BasePart") then
+            local TargetCFrame = RootPart.CFrame * CFrame.new(0, 0, -10)
+            
+            pcall(function()
+                player.SimulationRadius = math.huge
+                player.MaxSimulationRadius = math.huge
+            end)
+
+            if TargetModel:IsA("Model") then
+                TargetModel:PivotTo(TargetCFrame)
+            else
+                MainPart.CFrame = TargetCFrame
+            end
+            
+            MainPart.Velocity = Vector3.new(0, 0, 0)
+            MainPart.RotVelocity = Vector3.new(0, 0, 0)
+            
+            bringCargoBtn.Text = "Cargo Brought Successfully!"
+            bringCargoBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 100)
+            task.wait(1.5)
+            bringCargoBtn.Text = "Bring Cargo & Own Network"
+            bringCargoBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+        else
+            showNotification("No BasePart inside Cargo!", 2)
+        end
+    else
+        showNotification("Cargo or Character not found!", 2)
+    end
+end)
