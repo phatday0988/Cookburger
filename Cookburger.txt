@@ -19,8 +19,8 @@ screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 260, 0, 265)
-mainFrame.Position = UDim2.new(0.5, -130, 0.5, -132)
+mainFrame.Size = UDim2.new(0, 260, 0, 305)
+mainFrame.Position = UDim2.new(0.5, -130, 0.5, -152)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -127,7 +127,7 @@ minButton.MouseButton1Click:Connect(function()
         mainFrame.Size = UDim2.new(0, mainFrame.AbsoluteSize.X, 0, 40)
         minButton.Text = "+"
     else
-        mainFrame.Size = UDim2.new(0, mainFrame.AbsoluteSize.X, 0, 265)
+        mainFrame.Size = UDim2.new(0, mainFrame.AbsoluteSize.X, 0, 305)
         minButton.Text = "-"
     end
 end)
@@ -207,7 +207,7 @@ local function createSettingOption(text, scale)
             mainFrame.Size = UDim2.new(1, 0, 1, 0)
             mainFrame.Position = UDim2.new(0, 0, 0, 0)
         else
-            local baseW, baseH = 260, 265
+            local baseW, baseH = 260, 305
             mainFrame.Size = UDim2.new(0, baseW * scale, 0, baseH * scale)
         end
         settingFrame.Visible = false
@@ -641,5 +641,59 @@ bringCargoBtn.MouseButton1Click:Connect(function()
         end
     else
         showNotification("Cargo or Character not found!", 2)
+    end
+end)
+
+local flipCargoBtn = Instance.new("TextButton")
+flipCargoBtn.Name = "FlipCargoBtn"
+flipCargoBtn.Size = UDim2.new(1, 0, 0, 35)
+flipCargoBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+flipCargoBtn.Text = "Flip Cargo (Break)"
+flipCargoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+flipCargoBtn.TextSize = 14
+flipCargoBtn.Font = Enum.Font.SourceSansBold
+flipCargoBtn.LayoutOrder = 6
+flipCargoBtn.Parent = container
+
+local b6c = Instance.new("UICorner")
+b6c.CornerRadius = UDim.new(0, 6)
+b6c.Parent = flipCargoBtn
+
+flipCargoBtn.MouseButton1Click:Connect(function()
+    local TargetModel = workspace:FindFirstChild("Entities")
+        and workspace.Entities:FindFirstChild("Vehicles")
+        and workspace.Entities.Vehicles:FindFirstChild("Cargo")
+
+    if TargetModel then
+        local MainPart = TargetModel:IsA("Model") and (TargetModel.PrimaryPart or TargetModel:FindFirstChildWhichIsA("BasePart")) or TargetModel
+        
+        if MainPart and MainPart:IsA("BasePart") then
+            pcall(function()
+                player.SimulationRadius = math.huge
+                player.MaxSimulationRadius = math.huge
+            end)
+
+            local CurrentCFrame = TargetModel:IsA("Model") and TargetModel:GetPivot() or MainPart.CFrame
+            local FlippedCFrame = CurrentCFrame * CFrame.Angles(math.rad(180), 0, 0)
+
+            if TargetModel:IsA("Model") then
+                TargetModel:PivotTo(FlippedCFrame)
+            else
+                MainPart.CFrame = FlippedCFrame
+            end
+            
+            MainPart.Velocity = Vector3.new(0, -10, 0)
+            MainPart.RotVelocity = Vector3.new(0, 0, 0)
+            
+            flipCargoBtn.Text = "Cargo Flipped!"
+            flipCargoBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 100)
+            task.wait(1.5)
+            flipCargoBtn.Text = "Flip Cargo (Break)"
+            flipCargoBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+        else
+            showNotification("No BasePart inside Cargo!", 2)
+        end
+    else
+        showNotification("Cargo not found!", 2)
     end
 end)
